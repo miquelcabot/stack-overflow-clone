@@ -67,28 +67,128 @@ The project is divided into **stages**, each building upon the previous one:
 ## Prerequisites
 
 - Rust and Cargo installed (visit [rustup.rs](https://rustup.rs/))
+- PostgreSQL installed and running
+- `sqlx-cli` for database migrations
 
 ## Installation
 
+### 1. Clone the repository
+
 ```bash
-# Clone the repository
 git clone <repository-url>
-cd jira-cli
+cd stack-overflow-clone
+```
 
-# Build the project
-cargo build --release
+### 2. Install sqlx-cli
 
-# Run the application
+```bash
+cargo install sqlx-cli --no-default-features --features postgres
+```
+
+### 3. Set up PostgreSQL
+
+Make sure PostgreSQL is running. You can start it via:
+
+**Using Homebrew (macOS):**
+```bash
+brew services start postgresql
+```
+
+**Using Docker:**
+```bash
+docker run -d \
+  --name postgres \
+  -e POSTGRES_PASSWORD=your_password \
+  -p 5432:5432 \
+  postgres:latest
+```
+
+### 4. Configure environment variables
+
+Create a `.env` file in the project root:
+
+```bash
+# .env
+DATABASE_URL=postgres://username:password@localhost:5432/database_name
+```
+
+Replace `username`, `password`, and `database_name` with your PostgreSQL credentials.
+
+### 5. Create the database
+
+```bash
+# Connect to PostgreSQL and create the database
+createdb database_name
+
+# Or using psql:
+psql -U postgres -c "CREATE DATABASE database_name;"
+```
+
+### 6. Run migrations
+
+```bash
+sqlx migrate run
+```
+
+This will create the `questions` and `answers` tables in your database.
+
+### 7. Build the project
+
+```bash
+cargo build
+```
+
+### 8. Run the application
+
+```bash
 cargo run
 ```
 
 ## Usage
 
+Once the application is running, the API will be available at `http://127.0.0.1:8000`.
+
+### API Endpoints
+
+**Questions:**
+- `POST /question` - Create a new question
+- `GET /questions` - Retrieve all questions
+- `DELETE /question` - Delete a question
+
+**Answers:**
+- `POST /answer` - Create a new answer
+- `GET /answers` - Retrieve answers for a question
+- `DELETE /answer` - Delete an answer
+
+### Example Requests
+
+**Create a question:**
 ```bash
-cargo run
+curl -X POST http://127.0.0.1:8000/question \
+  -H "Content-Type: application/json" \
+  -d '{"title": "How do I learn Rust?", "description": "I want to learn Rust programming"}'
 ```
 
-Once running, the API will be available for HTTP requests (e.g. via `curl`, Postman, or a frontend client).
+**Get all questions:**
+```bash
+curl http://127.0.0.1:8000/questions
+```
+
+## Database Schema
+
+The application uses two main tables:
+
+**questions:**
+- `question_uuid` (UUID, Primary Key)
+- `title` (VARCHAR)
+- `description` (VARCHAR)
+- `created_at` (TIMESTAMP)
+
+**answers:**
+- `answer_uuid` (UUID, Primary Key)
+- `question_uuid` (UUID, Foreign Key → questions)
+- `content` (VARCHAR)
+- `created_at` (TIMESTAMP)
 
 ## Development
 
