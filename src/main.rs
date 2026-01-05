@@ -14,6 +14,7 @@ use sqlx::postgres::PgPoolOptions;
 
 mod handlers;
 mod models;
+mod persistance;
 
 use handlers::*;
 
@@ -27,14 +28,6 @@ async fn main() {
         .connect(&std::env::var("DATABASE_URL").expect("DATABASE_URL must be set."))
         .await
         .expect("Failed to create Postgres connection pool!");
-
-    let recs = sqlx::query!("SELECT * FROM questions")
-        .fetch_all(&pool)
-        .await
-        .unwrap();
-
-    info!("********* Question Records *********");
-    info!("{:?}", recs);
 
     let app = Router::new()
         .route("/question", post(create_question))
